@@ -1,4 +1,4 @@
-import { FFmpegKit, ReturnCode } from 'ffmpeg-kit-react-native';
+import { FFmpegKit, ReturnCode, FFprobeKit } from 'ffmpeg-kit-react-native';
 import { Platform } from 'react-native';
 
 export const generateThumbnail = async (inputPath: string, outputPath: string): Promise<boolean> => {
@@ -106,7 +106,63 @@ export const changeSpeed = async (
   }
 };
 
-import { WatermarkConfig } from '../types';
+import { WatermarkConfig, FilterConfig } from '../types';
+
+export const getVideoDimensions = async (path: string): Promise<{width: number, height: number} | null> => {
+  const session = await FFprobeKit.getMediaInformation(path);
+  const info = session.getMediaInformation();
+  const streams = info.getStreams();
+  
+  // Find video stream
+  const videoStream = streams.find((s: any) => s.getType() === 'video');
+  if (videoStream) {
+      return {
+          width: videoStream.getWidth(),
+          height: videoStream.getHeight()
+      };
+  }
+  return null;
+};
+
+export const cropVideo = async (
+  inputPath: string, 
+  outputPath: string, 
+  w: number, 
+  h: number, 
+  x: number, 
+  y: number
+): Promise<boolean> => {
+  // -vf "crop=w:h:x:y"
+  const command = `-i "${inputPath}" -vf "crop=${w}:${h}:${x}:${y}" -c:v libx264 -preset ultrafast -c:a copy "${outputPath}"`;
+  const session = await FFmpegKit.execute(command);
+  return ReturnCode.isSuccess(await session.getReturnCode());
+};
+
+export const reverseVideo = async (inputPath: string, outputPath: string): Promise<boolean> => {
+    // Reverse video and audio
+    // Note: This is memory intensive
+    const command = `-i "${inputPath}" -vf reverse -af areverse -preset ultrafast "${outputPath}"`;
+    const session = await FFmpegKit.execute(command);
+    return ReturnCode.isSuccess(await session.getReturnCode());
+};
+
+export const adjustVolume = async (inputPath: string, outputPath: string, multiplier: number): Promise<boolean> => {
+    // multiplier: 0.0 (mute) to >1.0 (boost)
+    const command = `-i "${inputPath}" -filter:a "volume=${multiplier}" -c:v copy "${outputPath}"`;
+    const session = await FFmpegKit.execute(command);
+    return ReturnCode.isSuccess(await session.getReturnCode());
+};
+
+export const applyFilter = async (
+    inputPath: string, 
+    outputPath: string, 
+    config: FilterConfig
+): Promise<boolean> => {
+    // eq=brightness=B:contrast=C:saturation=S
+    const command = `-i "${inputPath}" -vf "eq=brightness=${config.brightness}:contrast=${config.contrast}:saturation=${config.saturation}" -c:a copy -preset ultrafast "${outputPath}"`;
+    const session = await FFmpegKit.execute(command);
+    return ReturnCode.isSuccess(await session.getReturnCode());
+};
 
 export const addWatermark = async (
   inputPath: string, 

@@ -3,9 +3,15 @@ export interface SplitFile {
   thumbnail?: string;
 }
 
-export type ProcessingMode = 'SPLIT' | 'TRIM' | 'AUDIO' | 'COMPRESS' | 'MERGE' | 'GIF' | 'SPEED' | 'WATERMARK';
+export type ProcessingMode = 'SPLIT' | 'TRIM' | 'AUDIO' | 'COMPRESS' | 'MERGE' | 'GIF' | 'SPEED' | 'WATERMARK' | 'CROP' | 'REVERSE' | 'VOLUME' | 'FILTER';
 
 export type WatermarkPosition = 'TOP_LEFT' | 'TOP_RIGHT' | 'BOTTOM_LEFT' | 'BOTTOM_RIGHT' | 'CENTER';
+
+export interface FilterConfig {
+  brightness: number; // -1.0 to 1.0 (default 0)
+  contrast: number;   // 0.0 to 2.0 (default 1.0)
+  saturation: number; // 0.0 to 3.0 (default 1.0)
+}
 
 export interface WatermarkConfig {
   text: string;

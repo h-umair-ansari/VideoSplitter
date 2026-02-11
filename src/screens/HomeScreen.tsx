@@ -13,8 +13,8 @@ import { pick, keepLocalCopy, types, errorCodes, isErrorWithCode } from '@react-
 import RNFS from 'react-native-fs';
 import { FFmpegKit, ReturnCode } from 'ffmpeg-kit-react-native';
 
-import { SplitSession, SplitFile, ProcessingMode, CompressionLevel, WatermarkConfig } from '../types';
-import { generateThumbnail, trimVideo, extractAudio, compressVideo, mergeVideos, convertToGif, changeSpeed, addWatermark } from '../utils/ffmpeg';
+import { SplitSession, SplitFile, ProcessingMode, CompressionLevel, WatermarkConfig, FilterConfig } from '../types';
+import { generateThumbnail, trimVideo, extractAudio, compressVideo, mergeVideos, convertToGif, changeSpeed, addWatermark, cropVideo, reverseVideo, adjustVolume, applyFilter, getVideoDimensions } from '../utils/ffmpeg';
 import { loadSessions, deleteSessionDirectory, saveFileToDownloads, createConcatFile } from '../utils/fileSystem';
 import { SessionItem } from '../components/SessionItem';
 import { VideoSplitterCard } from '../components/VideoSplitterCard';
@@ -43,6 +43,15 @@ export const HomeScreen = () => {
       position: 'BOTTOM_RIGHT',
       fontSize: '24',
       fontColor: 'white'
+  });
+  
+  // Professional Features State
+  const [cropRatio, setCropRatio] = useState('Original');
+  const [volumeMultiplier, setVolumeMultiplier] = useState(1.0);
+  const [filterConfig, setFilterConfig] = useState<FilterConfig>({
+      brightness: 0.0,
+      contrast: 1.0,
+      saturation: 1.0
   });
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -155,6 +164,11 @@ export const HomeScreen = () => {
     } else if (mode === 'WATERMARK') {
         if (!watermarkConfig.text || watermarkConfig.text.trim().length === 0) {
             Alert.alert('Error', 'Please enter watermark text');
+            return;
+        }
+    } else if (mode === 'CROP') {
+        if (cropRatio === 'Original') {
+            Alert.alert('Error', 'Please select a different aspect ratio');
             return;
         }
     }
@@ -297,6 +311,75 @@ export const HomeScreen = () => {
           setLogs(prev => [...prev, `Adding watermark "${watermarkConfig.text}"...`]);
           
           success = await addWatermark(inputPath, outputPath, watermarkConfig);
+
+      } else if (mode === 'CROP') {
+          outputDir = `${RNFS.DocumentDirectoryPath}/crop_session_${timestamp}`;
+          await RNFS.mkdir(outputDir);
+          const outputPath = `${outputDir}/cropped.mp4`;
+
+          setStatusMessage(`Cropping video...`);
+          setLogs(prev => [...prev, `Cropping to ${cropRatio}...`]);
+
+          // Calculate Crop Dimensions
+          const dims = await getVideoDimensions(inputPath);
+          if (!dims) throw new Error("Could not get video dimensions");
+
+          const { width: vw, height: vh } = dims;
+          let targetRatio = 0;
+          const [rw, rh] = cropRatio.split(':').map(Number);
+          targetRatio = rw / rh;
+
+          let w = vw;
+          let h = vh;
+
+          // If video is wider than target, crop width
+          if (vw / vh > targetRatio) {
+              h = vh;
+              w = Math.round(vh * targetRatio);
+          } else {
+              // Video is taller than target, crop height
+              w = vw;
+              h = Math.round(vw / targetRatio);
+          }
+          
+          // Ensure even dimensions for some codecs
+          if (w % 2 !== 0) w -= 1;
+          if (h % 2 !== 0) h -= 1;
+
+          const x = Math.round((vw - w) / 2);
+          const y = Math.round((vh - h) / 2);
+
+          success = await cropVideo(inputPath, outputPath, w, h, x, y);
+
+      } else if (mode === 'REVERSE') {
+          outputDir = `${RNFS.DocumentDirectoryPath}/reverse_session_${timestamp}`;
+          await RNFS.mkdir(outputDir);
+          const outputPath = `${outputDir}/reversed.mp4`;
+
+          setStatusMessage(`Reversing video...`);
+          setLogs(prev => [...prev, `Reversing video...`]);
+          
+          success = await reverseVideo(inputPath, outputPath);
+
+      } else if (mode === 'VOLUME') {
+          outputDir = `${RNFS.DocumentDirectoryPath}/volume_session_${timestamp}`;
+          await RNFS.mkdir(outputDir);
+          const outputPath = `${outputDir}/volume_adjusted.mp4`;
+
+          setStatusMessage(`Adjusting volume...`);
+          setLogs(prev => [...prev, `Setting volume to ${volumeMultiplier}x...`]);
+          
+          success = await adjustVolume(inputPath, outputPath, volumeMultiplier);
+
+      } else if (mode === 'FILTER') {
+          outputDir = `${RNFS.DocumentDirectoryPath}/filter_session_${timestamp}`;
+          await RNFS.mkdir(outputDir);
+          const outputPath = `${outputDir}/filtered.mp4`;
+
+          setStatusMessage(`Applying filters...`);
+          setLogs(prev => [...prev, `Applying filters (B:${filterConfig.brightness.toFixed(1)}, C:${filterConfig.contrast.toFixed(1)}, S:${filterConfig.saturation.toFixed(1)})...`]);
+          
+          success = await applyFilter(inputPath, outputPath, filterConfig);
       }
 
       if (success) {
@@ -417,8 +500,14 @@ export const HomeScreen = () => {
                     speedMultiplier={speedMultiplier}
                     setSpeedMultiplier={setSpeedMultiplier}
                     watermarkConfig={watermarkConfig}
-                    setWatermarkConfig={setWatermarkConfig}
-                    isProcessing={isProcessing}
+            setWatermarkConfig={setWatermarkConfig}
+            cropRatio={cropRatio}
+            setCropRatio={setCropRatio}
+            volumeMultiplier={volumeMultiplier}
+            setVolumeMultiplier={setVolumeMultiplier}
+            filterConfig={filterConfig}
+            setFilterConfig={setFilterConfig}
+            isProcessing={isProcessing}
                     statusMessage={statusMessage}
                     onProcessVideo={processVideo}
                 />

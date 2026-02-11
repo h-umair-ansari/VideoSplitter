@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
-import { ProcessingMode, CompressionLevel, WatermarkConfig } from '../types';
+import { ProcessingMode, CompressionLevel, WatermarkConfig, FilterConfig } from '../types';
 import { WatermarkSettings } from './WatermarkSettings';
 
 interface VideoSplitterCardProps {
@@ -31,6 +31,15 @@ interface VideoSplitterCardProps {
     setSpeedMultiplier: (val: number) => void;
     watermarkConfig: WatermarkConfig;
     setWatermarkConfig: (val: WatermarkConfig) => void;
+    
+    // New Professional Features
+    cropRatio: string;
+    setCropRatio: (val: string) => void;
+    volumeMultiplier: number;
+    setVolumeMultiplier: (val: number) => void;
+    filterConfig: FilterConfig;
+    setFilterConfig: (val: FilterConfig) => void;
+
     selectedFiles?: any[];
 
     isProcessing: boolean;
@@ -66,6 +75,12 @@ export const VideoSplitterCard: React.FC<VideoSplitterCardProps> = ({
     setSpeedMultiplier,
     watermarkConfig,
     setWatermarkConfig,
+    cropRatio,
+    setCropRatio,
+    volumeMultiplier,
+    setVolumeMultiplier,
+    filterConfig,
+    setFilterConfig,
     selectedFiles,
     isProcessing,
     statusMessage,
@@ -74,7 +89,7 @@ export const VideoSplitterCard: React.FC<VideoSplitterCardProps> = ({
     
     const renderModeSelector = () => (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.modeScroll} contentContainerStyle={styles.modeContainer}>
-            {(['SPLIT', 'TRIM', 'AUDIO', 'COMPRESS', 'MERGE', 'GIF', 'SPEED', 'WATERMARK'] as ProcessingMode[]).map((m) => (
+            {(['SPLIT', 'TRIM', 'CROP', 'MERGE', 'AUDIO', 'VOLUME', 'FILTER', 'REVERSE', 'COMPRESS', 'GIF', 'SPEED', 'WATERMARK'] as ProcessingMode[]).map((m) => (
                 <TouchableOpacity
                     key={m}
                     style={[styles.modeButton, mode === m && styles.activeModeButton]}
@@ -83,7 +98,11 @@ export const VideoSplitterCard: React.FC<VideoSplitterCardProps> = ({
                     <Text style={[styles.modeText, mode === m && styles.activeModeText]}>
                         {m === 'SPLIT' ? '✂️ Split' : 
                          m === 'TRIM' ? '🎞️ Trim' : 
+                         m === 'CROP' ? '📐 Crop' :
                          m === 'AUDIO' ? '🎵 Audio' : 
+                         m === 'VOLUME' ? '🔊 Volume' :
+                         m === 'FILTER' ? '🎨 Filter' :
+                         m === 'REVERSE' ? '⏪ Reverse' :
                          m === 'COMPRESS' ? '📉 Compress' :
                          m === 'MERGE' ? '🔗 Merge' :
                          m === 'GIF' ? '👾 GIF' :
@@ -237,6 +256,70 @@ export const VideoSplitterCard: React.FC<VideoSplitterCardProps> = ({
         />
     );
 
+    const renderCropOptions = () => (
+        <View>
+            <Text style={styles.label}>Aspect Ratio</Text>
+            <View style={styles.row}>
+                {['Original', '1:1', '4:5', '16:9', '9:16'].map((r) => (
+                    <TouchableOpacity
+                        key={r}
+                        style={[styles.compressButton, cropRatio === r && styles.activeCompress]}
+                        onPress={() => setCropRatio(r)}
+                    >
+                        <Text style={[styles.compressText, cropRatio === r && styles.activeCompressText]}>
+                            {r}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+        </View>
+    );
+
+    const renderVolumeOptions = () => (
+        <View>
+            <Text style={styles.label}>Volume Multiplier</Text>
+            <View style={styles.row}>
+                {[0.0, 0.5, 1.0, 1.5, 2.0].map((v) => (
+                    <TouchableOpacity
+                        key={v}
+                        style={[styles.compressButton, volumeMultiplier === v && styles.activeCompress]}
+                        onPress={() => setVolumeMultiplier(v)}
+                    >
+                        <Text style={[styles.compressText, volumeMultiplier === v && styles.activeCompressText]}>
+                            {v === 0 ? 'Mute' : `${v}x`}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+        </View>
+    );
+
+    const renderFilterOptions = () => (
+        <View>
+            <View style={styles.filterRow}>
+                <Text style={styles.filterLabel}>Brightness ({filterConfig.brightness.toFixed(1)})</Text>
+                <View style={styles.filterControls}>
+                    <TouchableOpacity onPress={() => setFilterConfig({...filterConfig, brightness: Math.max(-1.0, filterConfig.brightness - 0.1)})} style={styles.filterBtn}><Text>-</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => setFilterConfig({...filterConfig, brightness: Math.min(1.0, filterConfig.brightness + 0.1)})} style={styles.filterBtn}><Text>+</Text></TouchableOpacity>
+                </View>
+            </View>
+            <View style={styles.filterRow}>
+                <Text style={styles.filterLabel}>Contrast ({filterConfig.contrast.toFixed(1)})</Text>
+                <View style={styles.filterControls}>
+                    <TouchableOpacity onPress={() => setFilterConfig({...filterConfig, contrast: Math.max(0.0, filterConfig.contrast - 0.1)})} style={styles.filterBtn}><Text>-</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => setFilterConfig({...filterConfig, contrast: Math.min(2.0, filterConfig.contrast + 0.1)})} style={styles.filterBtn}><Text>+</Text></TouchableOpacity>
+                </View>
+            </View>
+            <View style={styles.filterRow}>
+                <Text style={styles.filterLabel}>Saturation ({filterConfig.saturation.toFixed(1)})</Text>
+                <View style={styles.filterControls}>
+                    <TouchableOpacity onPress={() => setFilterConfig({...filterConfig, saturation: Math.max(0.0, filterConfig.saturation - 0.1)})} style={styles.filterBtn}><Text>-</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => setFilterConfig({...filterConfig, saturation: Math.min(3.0, filterConfig.saturation + 0.1)})} style={styles.filterBtn}><Text>+</Text></TouchableOpacity>
+                </View>
+            </View>
+        </View>
+    );
+
     const getActionButtonText = () => {
         if (isProcessing) return statusMessage;
         switch (mode) {
@@ -248,6 +331,10 @@ export const VideoSplitterCard: React.FC<VideoSplitterCardProps> = ({
             case 'GIF': return '👾 Create GIF';
             case 'SPEED': return '⏩ Change Speed';
             case 'WATERMARK': return '💧 Add Watermark';
+            case 'CROP': return '📐 Crop Video';
+            case 'REVERSE': return '⏪ Reverse Video';
+            case 'VOLUME': return '🔊 Adjust Volume';
+            case 'FILTER': return '🎨 Apply Filter';
             default: return 'Process';
         }
     };
@@ -295,6 +382,14 @@ export const VideoSplitterCard: React.FC<VideoSplitterCardProps> = ({
                 {mode === 'GIF' && renderGifOptions()}
                 {mode === 'SPEED' && renderSpeedOptions()}
                 {mode === 'WATERMARK' && renderWatermarkOptions()}
+                {mode === 'CROP' && renderCropOptions()}
+                {mode === 'VOLUME' && renderVolumeOptions()}
+                {mode === 'FILTER' && renderFilterOptions()}
+                {mode === 'REVERSE' && (
+                    <Text style={styles.infoText}>
+                        Reverses video and audio playback. (Note: May take longer for large videos)
+                    </Text>
+                )}
                 {mode === 'MERGE' && (
                     <Text style={styles.infoText}>
                         Select multiple videos to merge them into one file.
@@ -561,6 +656,33 @@ const styles = StyleSheet.create({
       color: '#fff',
       marginLeft: 8,
       fontWeight: '600',
+  },
+  filterRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 10,
+      backgroundColor: '#F2F2F7',
+      padding: 10,
+      borderRadius: 8,
+  },
+  filterLabel: {
+      fontWeight: '600',
+      color: '#3A3A3C',
+  },
+  filterControls: {
+      flexDirection: 'row',
+      gap: 10,
+  },
+  filterBtn: {
+      backgroundColor: '#fff',
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: '#E5E5EA',
   },
   mainButtonText: {
     color: '#fff',
