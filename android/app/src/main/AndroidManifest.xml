@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
 
     <application
       android:name=".MainApplication"
@@ -8,6 +11,7 @@
       android:icon="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
+      android:requestLegacyExternalStorage="true"
       android:theme="@style/AppTheme"
       android:usesCleartextTraffic="${usesCleartextTraffic}"
       android:supportsRtl="true">
@@ -23,5 +27,14 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+      <provider
+          android:name="androidx.core.content.FileProvider"
+          android:authorities="${applicationId}.provider"
+          android:grantUriPermissions="true"
+          android:exported="false">
+          <meta-data
+              android:name="android.support.FILE_PROVIDER_PATHS"
+              android:resource="@xml/filepaths" />
+      </provider>
     </application>
 </manifest>
