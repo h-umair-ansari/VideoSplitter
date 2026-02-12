@@ -18,12 +18,6 @@ const FEATURES = [
     { id: 'Watermark', name: 'Watermark', icon: 'watermark', color: '#3A3A3C' },
 ];
 
-const AI_TOOLS = [
-    { id: 'AutoCaptions', name: 'Auto Captions', icon: 'subtitles-outline', color: '#FF9500' },
-    { id: 'MagicCut', name: 'Magic Cut', icon: 'waveform', color: '#007AFF' },
-    { id: 'AiRemoveBg', name: 'Remove BG', icon: 'account-box-outline', color: '#AF52DE' },
-];
-
 export const DashboardScreen = () => {
     const navigation = useNavigation<any>();
 
@@ -41,29 +35,7 @@ export const DashboardScreen = () => {
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <Text style={styles.headerTitle}>Video Toolkit</Text>
                 <Text style={styles.headerSubtitle}>Select a tool to get started</Text>
-                
-                {/* AI Studio Section */}
-                <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>AI Studio</Text>
-                    <View style={styles.betaBadge}><Text style={styles.betaText}>BETA</Text></View>
-                </View>
 
-                <View style={styles.grid}>
-                    {AI_TOOLS.map((tool) => (
-                        <TouchableOpacity 
-                            key={tool.id} 
-                            style={styles.card}
-                            onPress={() => handleNavigation(tool.id)}
-                        >
-                            <View style={[styles.iconContainer, { backgroundColor: tool.color + '20' }]}>
-                                <MaterialCommunityIcons name={tool.icon} size={32} color={tool.color} />
-                            </View>
-                            <Text style={styles.cardTitle}>{tool.name}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-
-                <Text style={styles.sectionTitle}>Standard Tools</Text>
                 <View style={styles.grid}>
                     {FEATURES.map((feature) => (
                         <TouchableOpacity 
