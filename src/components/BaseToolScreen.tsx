@@ -27,7 +27,7 @@ export const BaseToolScreen: React.FC<BaseToolScreenProps> = ({
             <SharedVideoPicker 
                 onPickVideo={pickVideo} 
                 selectedFile={selectedFile} 
-                selectedFiles={selectedFiles}
+                selectedFiles={multiSelection ? selectedFiles : undefined}
                 selectedThumbnail={selectedThumbnail} 
             />
 

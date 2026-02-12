@@ -14,6 +14,9 @@ import { ReverseScreen } from '../screens/tools/ReverseScreen';
 import { CompressScreen } from '../screens/tools/CompressScreen';
 import { SpeedScreen } from '../screens/tools/SpeedScreen';
 import { GifScreen } from '../screens/tools/GifScreen';
+import { MagicCutScreen } from '../screens/ai_tools/MagicCutScreen';
+import { AutoCaptionsScreen } from '../screens/ai_tools/AutoCaptionsScreen';
+import { AiRemoveBackgroundScreen } from '../screens/ai_tools/AiRemoveBackgroundScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -41,6 +44,11 @@ export const AppNavigator = () => {
                 <Stack.Screen name="Compress" component={CompressScreen} options={{ title: 'Compress Video' }} />
                 <Stack.Screen name="Speed" component={SpeedScreen} options={{ title: 'Change Speed' }} />
                 <Stack.Screen name="Gif" component={GifScreen} options={{ title: 'Convert to GIF' }} />
+                
+                {/* AI Tools Routes */}
+                <Stack.Screen name="MagicCut" component={MagicCutScreen} options={{ title: 'Magic Cut (Silence)' }} />
+                <Stack.Screen name="AutoCaptions" component={AutoCaptionsScreen} options={{ title: 'Auto Captions' }} />
+                <Stack.Screen name="AiRemoveBg" component={AiRemoveBackgroundScreen} options={{ title: 'Remove Background' }} />
             </Stack.Navigator>
         </NavigationContainer>
     );
